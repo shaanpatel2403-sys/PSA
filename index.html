@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spine crossword — trials, pathology, eponyms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFF2F2; --card:#FFFFFF; --ink:#0E1518; --ink2:#4C5B60; --ink3:#84959A;
+  --line:#D5DEDF; --line2:#B9C6C8;
+  --teal:#0D6F62; --teal-soft:#DBEDE8; --teal-line:#8FC4B9;
+  --amber:#9A6A0B; --amber-soft:#F7EBD2;
+  --clay:#A3372A; --clay-soft:#F7E2DE;
+  --f-disp:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0F1618; --card:#171F21; --ink:#E7EDEC; --ink2:#9FB0B2; --ink3:#6E8084;
+    --line:#2A3639; --line2:#3B4A4E;
+    --teal:#4FBFA9; --teal-soft:#123430; --teal-line:#2C6F63;
+    --amber:#D9A445; --amber-soft:#3A2E15;
+    --clay:#E0776A; --clay-soft:#3A1F1B;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--f-body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.bar{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding:18px 24px 14px; border-bottom:1px solid var(--line); background:var(--card);
+}
+.bar h1{
+  font-family:var(--f-disp); font-weight:600; font-size:21px; letter-spacing:.01em;
+  margin:0; text-transform:uppercase;
+}
+.tools{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+button{
+  font-family:var(--f-body); font-size:13px; color:var(--ink); background:transparent;
+  border:1px solid var(--line2); border-radius:2px; padding:6px 11px; cursor:pointer;
+}
+button:hover{background:var(--teal-soft); border-color:var(--teal-line)}
+button:active{transform:translateY(1px)}
+button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+@media (prefers-color-scheme:dark){button[aria-pressed="true"]{color:#0F1618}}
+button:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
+
+main{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; padding:24px; align-items:start; max-width:1180px; margin:0 auto}
+@media (max-width:900px){main{grid-template-columns:minmax(0,1fr); gap:20px; padding:16px}}
+
+.board{position:sticky; top:16px}
+@media (max-width:900px){.board{position:static}}
+.now{
+  font-family:var(--f-mono); font-size:12px; color:var(--ink2); letter-spacing:.02em;
+  min-height:34px; padding:7px 10px; margin:0 0 10px; background:var(--card);
+  border:1px solid var(--line); border-left:3px solid var(--teal); border-radius:0;
+}
+.now b{font-family:var(--f-body); font-weight:500; color:var(--ink)}
+.frame{display:flex; gap:10px; align-items:stretch}
+.rail{
+  width:14px; flex:0 0 14px; display:grid; grid-template-rows:repeat(24,1fr); gap:2px;
+  padding:2px; background:var(--card); border:1px solid var(--line);
+}
+.rail i{display:block; background:var(--line); border-radius:1px}
+.rail i.on{background:var(--teal)}
+.grid{
+  flex:1; display:grid; grid-template-columns:repeat(15,1fr); aspect-ratio:1;
+  background:transparent; --fs:20px; --nfs:8px;
+}
+.cell{
+  position:relative; background:var(--card);
+  border-right:1px solid var(--line2); border-bottom:1px solid var(--line2);
+}
+.cell.bt{border-top:1px solid var(--line2)}
+.cell.bl{border-left:1px solid var(--line2)}
+.cell.blk{background:transparent; border:0}
+.cell .n{
+  position:absolute; top:1px; left:2px; font-family:var(--f-mono); font-size:var(--nfs);
+  color:var(--ink3); line-height:1; pointer-events:none; z-index:2;
+}
+.cell input{
+  width:100%; height:100%; border:0; background:transparent; text-align:center;
+  font-family:var(--f-disp); font-weight:600; font-size:var(--fs); color:var(--ink);
+  text-transform:uppercase; padding:0; caret-color:transparent; cursor:pointer;
+}
+.cell input:focus{outline:0}
+.cell.hl{background:var(--teal-soft)}
+.cell.sel{background:var(--teal); }
+.cell.sel input{color:#fff}
+@media (prefers-color-scheme:dark){.cell.sel input{color:#0F1618}}
+.cell.sel .n{color:rgba(255,255,255,.75)}
+.cell.given input{color:var(--amber)}
+.cell.wrong{background:var(--clay-soft)}
+.cell.wrong input{color:var(--clay)}
+.status{font-family:var(--f-mono); font-size:11.5px; color:var(--ink3); margin:10px 0 0; letter-spacing:.03em}
+
+.clues{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px}
+@media (max-width:1180px){.clues{grid-template-columns:minmax(0,1fr)}}
+.clues h2{
+  font-family:var(--f-disp); font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+  font-size:13px; color:var(--ink2); margin:0 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line2);
+}
+ol.cl{list-style:none; margin:0; padding:0}
+ol.cl li{
+  display:grid; grid-template-columns:34px minmax(0,1fr); gap:8px;
+  padding:7px 8px 7px 4px; cursor:pointer; border-left:3px solid transparent; font-size:13.5px; line-height:1.5;
+}
+ol.cl li:hover{background:var(--card)}
+ol.cl li.active{background:var(--card); border-left-color:var(--teal)}
+ol.cl li.done .q{color:var(--ink3)}
+ol.cl .k{font-family:var(--f-mono); font-size:12px; color:var(--ink2); padding-top:1px}
+ol.cl .a{
+  display:none; font-family:var(--f-disp); font-weight:600; letter-spacing:.05em;
+  color:var(--teal); text-transform:uppercase; font-size:12.5px; margin-top:2px;
+}
+body.answers ol.cl .a{display:block}
+
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <h1>Spine crossword</h1>
+  <div class="tools">
+    <button id="btnAns" aria-pressed="false">Show answers</button>
+    <button id="btnCheck">Check</button>
+    <button id="btnLetter">Reveal letter</button>
+    <button id="btnWord">Reveal word</button>
+    <button id="btnClear">Clear</button>
+  </div>
+</header>
+
+<main>
+  <section class="board">
+    <p class="now" id="now">Pick a square or a clue to start.</p>
+    <div class="frame">
+      <div class="rail" id="rail" aria-hidden="true"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="clues">
+    <div><h2>Across</h2><ol class="cl" id="acr"></ol></div>
+    <div><h2>Down</h2><ol class="cl" id="dwn"></ol></div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var N = 15;
+var ROWS = [
+".SINS.....J...R",
+".P.....MAGERL.A",
+".O.TLIF...F...N",
+".R..E..F..F...A",
+"STOPS..A..E.M.W",
+"L...S..CHORDOMA",
+"I.M..H.E..S.D.T",
+"PSEUDARTHROSIS.",
+"..Y..R....N.C.S",
+"..E..M...P....T",
+"DURA.SCHWANNOMA",
+"E.D.D....R....S",
+"N.I.I...ISTHMIC",
+"I.NASCIS......I",
+"S.G.H....RISCIS"
+];
+
+var CLUES = {
+SINS:"Spinal Instability Neoplastic Score. Six imaging features; the 7\u201312 band is the one that earns a surgical opinion.",
+MAGERL:"Screws passed across the C1\u2013C2 joint from behind. His name is also on an older thoracolumbar fracture classification.",
+TLIF:"Interbody fusion done by taking one facet off and coming in from the side, so the dural sac is never dragged across.",
+STOPS:"Australian randomised trial of individually tailored physiotherapy against simple advice for low back pain.",
+CHORDOMA:"Slow tumour arising from leftover notochord. Sacrum or clivus, brachyury-positive, needs wide margins.",
+PSEUDARTHROSIS:"A fusion that never fused \u2014 haloing around screws, a broken rod, movement on flexion-extension films.",
+DURA:"The tough sac around the cord and roots. Tearing it accidentally is the commonest mishap in decompression surgery.",
+SCHWANNOMA:"Benign nerve sheath tumour, often dumbbell-shaped through the foramen, usually separable from the nerve.",
+ISTHMIC:"The slipped vertebra caused by a stress fracture in the pars, rather than by worn facet joints.",
+NASCIS:"The three trials that made high-dose steroids routine in acute cord injury, before re-analysis undid them.",
+RISCIS:"Trial testing riluzole, a motor neurone disease drug, in acute spinal cord injury.",
+SPORT:"Large US trial of surgery versus conservative care. So many patients switched arms that the randomised comparison blurred.",
+JEFFERSON:"Burst fracture of C1 from an axial load. Whether it stays stable turns on the transverse ligament.",
+RANAWAT:"Grading of neurology in rheumatoid cervical disease, the third class split by whether the patient still walks.",
+LESS:"Trial finding that adding steroid to local anaesthetic in epidural injections gave little extra in lumbar stenosis.",
+FACET:"The paired joints at the back of each level, supplied by the medial branch \u2014 the target for ablation.",
+SLIP:"Trial comparing decompression alone with decompression plus fusion for a grade I degenerative slip.",
+MODIC:"Endplate changes on MRI. Type 1 is swelling and the painful one, type 2 is fat, type 3 is sclerosis.",
+MEYERDING:"Forward slip measured in quarters. Grade V means the vertebra has come off the front altogether.",
+HARMS:"Goel\u2013__ fixation: C1 lateral mass and C2 pars screws on rods. Kinder to the vertebral artery than 4 Across.",
+STASCIS:"The study behind decompressing a cervical cord injury within twenty-four hours.",
+PARS:"The bone between the upper and lower facet joints. Its stress fracture is the collar on the Scottie dog.",
+DENIS:"The three-column model of the spine. The middle column is the one that decides stability.",
+DISH:"Flowing bone bridging four or more levels at the front of the spine; a small fall then breaks all three columns."
+};
+
+var gridEl=document.getElementById("grid"), railEl=document.getElementById("rail"),
+    nowEl=document.getElementById("now"), statusEl=document.getElementById("status"),
+    acrEl=document.getElementById("acr"), dwnEl=document.getElementById("dwn");
+
+function on(r,c){return r>=0&&r<N&&c>=0&&c<N&&ROWS[r].charAt(c)!=="."}
+function idx(r,c){return r*N+c}
+
+var cells=new Array(N*N), entries=[], numAt={};
+
+var n=0;
+for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+  if(!on(r,c))continue;
+  var sa=!on(r,c-1)&&on(r,c+1), sd=!on(r-1,c)&&on(r+1,c);
+  if(sa||sd){n++; numAt[r+","+c]=n;}
+}
+for(var r2=0;r2<N;r2++)for(var c2=0;c2<N;c2++){
+  if(!on(r2,c2))continue;
+  var num=numAt[r2+","+c2];
+  if(!num)continue;
+  if(!on(r2,c2-1)&&on(r2,c2+1)){
+    var a="",list=[],cc=c2;
+    while(on(r2,cc)){a+=ROWS[r2].charAt(cc); list.push(idx(r2,cc)); cc++;}
+    entries.push({num:num,dir:"A",cells:list,answer:a});
+  }
+  if(!on(r2-1,c2)&&on(r2+1,c2)){
+    var b="",l2=[],rr=r2;
+    while(on(rr,c2)){b+=ROWS[rr].charAt(c2); l2.push(idx(rr,c2)); rr++;}
+    entries.push({num:num,dir:"D",cells:l2,answer:b});
+  }
+}
+
+for(var i=0;i<N*N;i++){
+  var rw=Math.floor(i/N), cl=i%N, d=document.createElement("div");
+  if(!on(rw,cl)){d.className="cell blk"; gridEl.appendChild(d); continue;}
+  d.className="cell"+(on(rw-1,cl)?"":" bt")+(on(rw,cl-1)?"":" bl");
+  var nm=numAt[rw+","+cl];
+  if(nm){var s=document.createElement("span"); s.className="n"; s.textContent=nm; d.appendChild(s);}
+  var inp=document.createElement("input");
+  inp.type="text"; inp.maxLength=1; inp.autocomplete="off"; inp.autocapitalize="characters";
+  inp.spellcheck=false; inp.setAttribute("aria-label","Row "+(rw+1)+" column "+(cl+1));
+  inp.dataset.i=i;
+  d.appendChild(inp); gridEl.appendChild(d);
+  cells[i]={el:d,input:inp,sol:ROWS[rw].charAt(cl),given:false};
+}
+
+entries.sort(function(a,b){return a.dir===b.dir?a.num-b.num:(a.dir==="A"?-1:1)});
+entries.forEach(function(e,k){e.k=k; e.clue=CLUES[e.answer]||"";});
+
+entries.forEach(function(e){
+  var li=document.createElement("li");
+  li.innerHTML='<span class="k">'+e.num+e.dir+'</span><span><span class="q">'+e.clue+
+    '</span> <span class="len">('+e.answer.length+')</span><span class="a">'+e.answer+'</span></span>';
+  li.addEventListener("click",function(){select(e,true)});
+  e.li=li;
+  (e.dir==="A"?acrEl:dwnEl).appendChild(li);
+});
+
+entries.forEach(function(e){
+  var bar=document.createElement("i"); bar.title=e.num+e.dir+" ("+e.answer.length+")";
+  e.bar=bar; railEl.appendChild(bar);
+});
+
+var cur=null, curCell=null, answers=false;
+
+function entryAt(i,dir){
+  for(var k=0;k<entries.length;k++){
+    var e=entries[k];
+    if(e.dir===dir&&e.cells.indexOf(i)>=0)return e;
+  }
+  for(var k2=0;k2<entries.length;k2++){
+    var e2=entries[k2];
+    if(e2.cells.indexOf(i)>=0)return e2;
+  }
+  return null;
+}
+function paint(){
+  for(var i=0;i<cells.length;i++){if(cells[i])cells[i].el.classList.remove("hl","sel");}
+  entries.forEach(function(e){e.li.classList.remove("active")});
+  if(cur){
+    cur.cells.forEach(function(i){cells[i].el.classList.add("hl")});
+    cur.li.classList.add("active");
+    nowEl.innerHTML="<b>"+cur.num+" "+(cur.dir==="A"?"Across":"Down")+" ("+cur.answer.length+")</b> &nbsp;"+cur.clue;
+  }
+  if(curCell!=null&&cells[curCell])cells[curCell].el.classList.add("sel");
+  refresh();
+}
+function select(e,focusFirst){
+  cur=e;
+  var target=e.cells[0];
+  if(focusFirst){
+    for(var j=0;j<e.cells.length;j++){if(!cells[e.cells[j]].input.value){target=e.cells[j];break;}}
+  }
+  curCell=target;
+  cells[target].input.focus();
+  paint();
+  if(e.li.scrollIntoView)e.li.scrollIntoView({block:"nearest"});
+}
+function step(d){
+  if(!cur)return;
+  var p=cur.cells.indexOf(curCell)+d;
+  if(p<0||p>=cur.cells.length)return;
+  curCell=cur.cells[p]; cells[curCell].input.focus(); paint();
+}
+function nextEntry(d){
+  if(!cur)return;
+  var k=(cur.k+d+entries.length)%entries.length;
+  select(entries[k],true);
+}
+function refresh(){
+  var filled=0;
+  entries.forEach(function(e){
+    var full=e.cells.every(function(i){return cells[i].input.value});
+    e.bar.classList.toggle("on",full);
+    e.li.classList.toggle("done",full);
+    if(full)filled++;
+  });
+  statusEl.textContent=filled+" of "+entries.length+" entries filled";
+  save();
+}
+
+gridEl.addEventListener("click",function(ev){
+  var inp=ev.target.closest("input"); if(!inp)return;
+  var i=+inp.dataset.i;
+  if(curCell===i&&cur){
+    var other=entryAt(i,cur.dir==="A"?"D":"A");
+    if(other&&other!==cur)cur=other;
+  }else{
+    cur=entryAt(i,cur?cur.dir:"A");
+  }
+  curCell=i; paint();
+});
+gridEl.addEventListener("focusin",function(ev){
+  var inp=ev.target.closest("input"); if(!inp)return;
+  var i=+inp.dataset.i;
+  if(curCell!==i){curCell=i; cur=entryAt(i,cur?cur.dir:"A"); paint();}
+});
+gridEl.addEventListener("input",function(ev){
+  var inp=ev.target.closest("input"); if(!inp)return;
+  var v=inp.value.slice(-1).toUpperCase();
+  inp.value=/[A-Z]/.test(v)?v:"";
+  var i=+inp.dataset.i;
+  cells[i].el.classList.remove("wrong");
+  cells[i].el.classList.remove("given"); cells[i].given=false;
+  if(inp.value)step(1); else refresh();
+});
+gridEl.addEventListener("keydown",function(ev){
+  var inp=ev.target.closest("input"); if(!inp)return;
+  var i=+inp.dataset.i, r=Math.floor(i/N), c=i%N, k=ev.key;
+  if(k==="Backspace"){
+    ev.preventDefault();
+    if(inp.value){inp.value=""; cells[i].el.classList.remove("wrong","given"); cells[i].given=false; refresh();}
+    else step(-1);
+    return;
+  }
+  if(k===" "){ev.preventDefault(); var o=entryAt(i,cur&&cur.dir==="A"?"D":"A"); if(o){cur=o; paint();} return;}
+  if(k==="Tab"){ev.preventDefault(); nextEntry(ev.shiftKey?-1:1); return;}
+  if(k==="Enter"){ev.preventDefault(); nextEntry(1); return;}
+  var map={ArrowRight:[0,1],ArrowLeft:[0,-1],ArrowUp:[-1,0],ArrowDown:[1,0]};
+  if(map[k]){
+    ev.preventDefault();
+    var want=(k==="ArrowLeft"||k==="ArrowRight")?"A":"D";
+    if(cur&&cur.dir!==want){var e2=entryAt(i,want); if(e2){cur=e2; paint(); return;}}
+    var rr=r+map[k][0], cc=c+map[k][1];
+    while(rr>=0&&rr<N&&cc>=0&&cc<N){
+      if(on(rr,cc)){curCell=idx(rr,cc); cells[curCell].input.focus(); cur=entryAt(curCell,want); paint(); return;}
+      rr+=map[k][0]; cc+=map[k][1];
+    }
+  }
+});
+
+function userLetters(){
+  var s="";
+  for(var i=0;i<cells.length;i++)s+=cells[i]?(cells[i].input.value||" "):"";
+  return s;
+}
+var stash=null;
+function setAnswers(v){
+  answers=v;
+  document.body.classList.toggle("answers",v);
+  document.getElementById("btnAns").setAttribute("aria-pressed",String(v));
+  document.getElementById("btnAns").textContent=v?"Hide answers":"Show answers";
+  if(v){
+    stash=userLetters();
+    cells.forEach(function(x){if(x){x.input.value=x.sol; x.input.readOnly=true; x.el.classList.remove("wrong","given");}});
+  }else{
+    cells.forEach(function(x,i){
+      if(!x)return;
+      x.input.readOnly=false;
+      x.input.value=stash?stash.charAt(i).trim():"";
+      if(x.given)x.el.classList.add("given");
+    });
+  }
+  refresh();
+}
+function save(){
+  if(answers)return;
+  try{localStorage.setItem("spine-xw-v1",userLetters());}catch(e){}
+}
+function load(){
+  try{
+    var s=localStorage.getItem("spine-xw-v1");
+    if(!s||s.length!==cells.length)return;
+    for(var i=0;i<cells.length;i++){if(cells[i])cells[i].input.value=s.charAt(i).trim();}
+  }catch(e){}
+}
+
+document.getElementById("btnAns").onclick=function(){setAnswers(!answers)};
+document.getElementById("btnCheck").onclick=function(){
+  if(answers)return;
+  var bad=0;
+  cells.forEach(function(x){
+    if(!x)return;
+    x.el.classList.remove("wrong");
+    if(x.input.value&&x.input.value!==x.sol){x.el.classList.add("wrong"); bad++;}
+  });
+  statusEl.textContent=bad?bad+" letter"+(bad>1?"s":"")+" wrong":"No wrong letters so far";
+};
+document.getElementById("btnLetter").onclick=function(){
+  if(answers||curCell==null)return;
+  var x=cells[curCell];
+  x.input.value=x.sol; x.given=true;
+  x.el.classList.add("given"); x.el.classList.remove("wrong");
+  step(1); refresh();
+};
+document.getElementById("btnWord").onclick=function(){
+  if(answers||!cur)return;
+  cur.cells.forEach(function(i,p){
+    var x=cells[i]; x.input.value=cur.answer.charAt(p); x.given=true;
+    x.el.classList.add("given"); x.el.classList.remove("wrong");
+  });
+  refresh();
+};
+document.getElementById("btnClear").onclick=function(){
+  if(answers)return;
+  if(!confirm("Clear every letter?"))return;
+  cells.forEach(function(x){if(x){x.input.value=""; x.given=false; x.el.classList.remove("wrong","given");}});
+  refresh();
+};
+
+function sizeGrid(){
+  var w=gridEl.clientWidth||600;
+  gridEl.style.setProperty("--fs",(w/N*0.54)+"px");
+  gridEl.style.setProperty("--nfs",Math.max(6,w/N*0.27)+"px");
+}
+window.addEventListener("resize",sizeGrid);
+sizeGrid(); load(); select(entries[0],true);
+})();
+</script>
+</body>
+</html>
