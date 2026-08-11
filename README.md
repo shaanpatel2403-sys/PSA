@@ -1,31 +1,35 @@
-# Spine crossword
+# Spine crosswords
 
-A 15×15 freeform crossword covering spine surgery trials, pathology, anatomy and eponymous
-classifications. Twenty-four entries, aimed at neurosurgery and orthopaedic trainees.
+Eight freeform crosswords for neurosurgery and orthopaedic trainees, 154 entries in total.
+No word is repeated between puzzles.
+
+| Puzzle | Grid | Entries |
+| --- | --- | --- |
+| Trials & eponyms | 15×15 | 24 |
+| Cervical spine | 15×14 | 23 |
+| Lumbar degenerative | 15×15 | 16 |
+| Deformity & alignment | 15×15 | 20 |
+| Trauma & cord injury | 15×15 | 16 |
+| Tumour & infection | 15×15 | 18 |
+| Instrumentation | 15×15 | 18 |
+| Paediatric & dysraphism | 15×15 | 19 |
 
 Everything lives in `index.html`. No build step, no dependencies, no server-side anything.
 
 ## Publish it
 
-**As a standalone site**
+Upload the contents of this folder to a repository, then Settings → Pages → Source:
+*Deploy from a branch* → Branch `main`, folder `/ (root)`. Live within a minute or two.
 
-1. Create a new public repository on GitHub.
-2. Upload the contents of this folder (`index.html`, `README.md`, `.nojekyll`) to the root.
-3. Settings → Pages → Source: *Deploy from a branch* → Branch: `main`, folder: `/ (root)` → Save.
-4. Live at `https://<user>.github.io/<repo>/` within a minute or two.
+As a subfolder of a repository you already publish, it appears at
+`https://<user>.github.io/<repo>/spine-crosswords/` with no settings change needed.
 
-**As a subfolder of a site you already publish**
-
-Drop this whole folder into the existing repository and push. It appears at
-`https://<user>.github.io/<repo>/spine-crossword/` — no settings change needed.
-
-`.nojekyll` tells GitHub Pages to serve the files as-is rather than running them through Jekyll.
-It is a zero-byte file and is easy to lose when copying between folders; if the page ever 404s
-after a push, check that it survived.
+`.nojekyll` is a zero-byte file telling Pages to serve the files untouched. Nothing here
+actually needs it, so don't worry if it goes missing in transit.
 
 ## Playing
 
-Click a square or a clue to begin, then type. The cursor advances along the current entry.
+Switch puzzle with the tabs. Click a square or a clue to begin, then type.
 
 | Key | Does |
 | --- | --- |
@@ -35,32 +39,49 @@ Click a square or a clue to begin, then type. The cursor advances along the curr
 | Backspace | Delete, then step back |
 
 `Check` marks wrong letters red without erasing them. `Reveal letter` and `Reveal word` fill in
-amber, so it stays visible later what was given away. `Show answers` fills the whole grid and
-displays the answer beside each clue; switching back restores whatever had been typed.
+amber, so it stays visible later what was given away. `Show answers` fills the grid and displays
+the answer beside each clue; switching back restores whatever had been typed.
 
-The column of bars beside the grid is the twenty-four entries stacked top to bottom, filling in
-as each is completed.
+The column of bars beside the grid is that puzzle's entries stacked top to bottom, filling as
+each is completed.
 
 ## Notes
 
-Progress is written to the browser's local storage, so closing the tab does not lose it. Storage
-is keyed to the address the file is served from, which means a locally opened copy and the
-published copy keep separate progress, and some browsers restrict storage on `file://` origins
-entirely.
+Progress is stored per puzzle in the browser's local storage, so closing the tab loses nothing.
+Storage is keyed to the address the file is served from, so a local copy and the published copy
+keep separate progress.
 
-The only external request is the Google Fonts stylesheet for IBM Plex. Offline or behind a
-restrictive network the page falls back to system fonts and nothing else changes. To make it
-genuinely zero-dependency, delete the three `<link>` tags in `<head>`.
+Where a square starts both an across and a down word it carries a single number, which therefore
+appears in both clue lists. That is standard crossword convention, not a numbering error.
+
+The only external request is the Google Fonts stylesheet for IBM Plex. Offline, the page falls
+back to system fonts and nothing else changes; delete the three `<link>` tags in `<head>` to make
+it fully self-contained.
 
 Light and dark themes both ship, following the operating system setting.
 
-## Editing the puzzle
+## Editing or adding puzzles
 
-Two data structures near the top of the `<script>` block hold everything:
+`PUZZLES` at the top of the `<script>` block is an array, one object per puzzle:
 
-- `ROWS` — fifteen strings of fifteen characters. A letter is a filled square, `.` is empty.
-- `CLUES` — an object keyed by the answer word.
+- `id` — the local storage key, so keep it unique
+- `name` — the tab label
+- `n` — entry count, shown on the tab
+- `rows` — strings of equal length; a letter is a filled square, `.` is empty
+- `clues` — keyed by the answer word
 
-Numbering, entry detection, clue ordering, the progress rail and the grid borders are all derived
-from `ROWS` at load time, so changing the grid needs no other edits. Every answer in `ROWS` must
-have a matching key in `CLUES`.
+Grids need not be square or the same size as each other. Numbering, entry detection, clue
+ordering, the progress rail and the cell borders are all derived from `rows` when the puzzle
+loads, so nothing else needs editing.
+
+Three rules the existing clues all obey, worth keeping if you add more:
+
+1. **No self-giveaway.** The answer, or a stem of it, must not appear inside any word of its own
+   clue. `DISCITIS` cannot be clued with "spreading into the disc".
+2. **No naming a neighbour.** A clue must not contain another answer from the same grid, unless
+   it does so through an explicit numbered reference such as "the route named at 6 Across".
+3. **No acronym expansion.** For an acronym answer, the initials of the clue's words must not
+   spell it. `SINS` cannot be clued "Spinal Instability Neoplastic Score".
+
+Every word readable in `rows` — in either direction — must have a key in `clues`, including any
+word formed accidentally by two crossing entries.
